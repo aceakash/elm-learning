@@ -1,0 +1,1 @@
+- Change the model to a record
