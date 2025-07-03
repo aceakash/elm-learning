@@ -1,19 +1,20 @@
 module Main exposing (Msg(..), main, update, view)
 
 import Browser
-import Html exposing (Html, button, div, text)
-import Html.Attributes exposing (style)
-import Html.Events exposing (onClick)
+import Html exposing (Html, button, div, input, text)
+import Html.Attributes exposing (checked, style, type_, value)
+import Html.Events exposing (onCheck, onClick)
 
 
 type alias Model =
     { counter : Int
+    , allowNegatives : Bool
     }
 
 
 initialModel : Model
 initialModel =
-    { counter = 0 }
+    { counter = 0, allowNegatives = True }
 
 
 main : Program () Model Msg
@@ -29,23 +30,28 @@ type Msg
     = Increment
     | Decrement
     | Reset
+    | ChangeAllowNegatives Bool
 
 
 update : Msg -> Model -> Model
 update msg model =
     case msg of
         Increment ->
-            { counter = model.counter + 1 }
+            -- { counter = model.counter + 1, allowNegatives = model.allowNegatives }
+            { model | counter = model.counter + 1 }
 
         Decrement ->
-            if model == initialModel then
+            if not model.allowNegatives && model.counter == initialModel.counter then
                 initialModel
 
             else
-                { counter = model.counter - 1 }
+                { model | counter = model.counter - 1 }
 
         Reset ->
-            initialModel
+            { model | counter = initialModel.counter }
+
+        ChangeAllowNegatives newValue ->
+            { model | allowNegatives = newValue }
 
 
 containerStyles : List (Html.Attribute msg)
@@ -99,5 +105,6 @@ view model =
             , div counterStyles [ text (String.fromInt model.counter) ]
             , button (onClick Increment :: buttonStyles) [ text "+" ]
             ]
+        , input [ type_ "checkbox", checked model.allowNegatives, onCheck ChangeAllowNegatives ] []
         , button (onClick Reset :: resetButtonStyles) [ text "RESET" ]
         ]
