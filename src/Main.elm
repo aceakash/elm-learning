@@ -6,47 +6,6 @@ import Html.Attributes exposing (checked, style, type_)
 import Html.Events exposing (onCheck, onClick)
 
 
-type alias Model =
-    { counterValue : Int
-    }
-
-
-initialModel : Model
-initialModel =
-    { counterValue = 0 }
-
-
-main =
-    Browser.sandbox { init = initialModel, update = update, view = view }
-
-
-
--- Model is just an integer representing the count
-
-
-type Msg
-    = Increment
-    | Decrement
-    | Reset
-
-
-update : Msg -> Model -> Model
-update msg model =
-    case msg of
-        Increment ->
-            { model | counterValue = model.counterValue + 1 }
-
-        Decrement ->
-            if model.counterValue == initialModel.counterValue then
-                initialModel
-
-            else
-                { model | counterValue = model.counterValue - 1 }
-
-        Reset ->
-            initialModel
-
-
 containerStyle : List (Html.Attribute msg)
 containerStyle =
     [ style "display" "flex"
@@ -88,6 +47,62 @@ resetButtonStyle =
     ]
 
 
+checkboxContainerStyle : List (Html.Attribute msg)
+checkboxContainerStyle =
+    [ style "display" "flex"
+    , style "align-items" "center"
+    , style "gap" "8px"
+    , style "margin-top" "16px"
+    ]
+
+
+type alias Model =
+    { counterValue : Int
+    , allowNegatives : Bool
+    }
+
+
+initialModel : Model
+initialModel =
+    { counterValue = 0, allowNegatives = True }
+
+
+main : Program () Model Msg
+main =
+    Browser.sandbox { init = initialModel, update = update, view = view }
+
+
+
+-- Model is just an integer representing the count
+
+
+type Msg
+    = Increment
+    | Decrement
+    | Reset
+    | ToggleAllowNegatives Bool
+
+
+update : Msg -> Model -> Model
+update msg model =
+    case msg of
+        Increment ->
+            { model | counterValue = model.counterValue + 1 }
+
+        Decrement ->
+            if not model.allowNegatives && model.counterValue == initialModel.counterValue then
+                { model | counterValue = initialModel.counterValue }
+
+            else
+                { model | counterValue = model.counterValue - 1 }
+
+        Reset ->
+            initialModel
+
+        ToggleAllowNegatives newValue ->
+            { model | allowNegatives = newValue }
+
+
 view : Model -> Html Msg
 view model =
     div containerStyle
@@ -96,15 +111,14 @@ view model =
             , div countStyle [ text (String.fromInt model.counterValue) ]
             , button (onClick Increment :: buttonStyle) [ text "+" ]
             ]
-
-        -- , div []
-        --     [ input
-        --         [ type_ "checkbox"
-        --         , checked model.checked
-        --         , onCheck ToggleCheck
-        --         ]
-        --         []
-        --     , text " Check me!"
-        --     ]
+        , div checkboxContainerStyle
+            [ input
+                [ type_ "checkbox"
+                , checked model.allowNegatives
+                , onCheck ToggleAllowNegatives
+                ]
+                []
+            , text "Allow negatives?"
+            ]
         , button (onClick Reset :: resetButtonStyle) [ text "RESET" ]
         ]
