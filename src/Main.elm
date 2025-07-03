@@ -1,9 +1,11 @@
 module Main exposing (Msg(..), main, update, view)
 
 import Browser
+import Debug exposing (toString)
 import Html exposing (Html, button, div, input, text)
-import Html.Attributes exposing (checked, style, type_)
-import Html.Events exposing (onCheck, onClick)
+import Html.Attributes exposing (checked, style, type_, value)
+import Html.Events exposing (onCheck, onClick, onInput)
+import String exposing (toInt)
 
 
 containerStyle : List (Html.Attribute msg)
@@ -59,12 +61,13 @@ checkboxContainerStyle =
 type alias Model =
     { counterValue : Int
     , allowNegatives : Bool
+    , delta : Int
     }
 
 
 initialModel : Model
 initialModel =
-    { counterValue = 0, allowNegatives = True }
+    { counterValue = 0, allowNegatives = True, delta = 1 }
 
 
 main : Program () Model Msg
@@ -72,35 +75,40 @@ main =
     Browser.sandbox { init = initialModel, update = update, view = view }
 
 
-
--- Model is just an integer representing the count
-
-
 type Msg
     = Increment
     | Decrement
     | Reset
     | ToggleAllowNegatives Bool
+    | ChangeDelta (Maybe Int)
 
 
 update : Msg -> Model -> Model
 update msg model =
     case msg of
         Increment ->
-            { model | counterValue = model.counterValue + 1 }
+            { model | counterValue = model.counterValue + model.delta }
 
         Decrement ->
             if not model.allowNegatives && model.counterValue == initialModel.counterValue then
                 { model | counterValue = initialModel.counterValue }
 
             else
-                { model | counterValue = model.counterValue - 1 }
+                { model | counterValue = model.counterValue - model.delta }
 
         Reset ->
             initialModel
 
         ToggleAllowNegatives newValue ->
             { model | allowNegatives = newValue }
+
+        ChangeDelta delta ->
+            case delta of
+                Nothing ->
+                    model
+
+                Just val ->
+                    { model | delta = val }
 
 
 view : Model -> Html Msg
@@ -110,6 +118,14 @@ view model =
             [ button (onClick Decrement :: buttonStyle) [ text "-" ]
             , div countStyle [ text (String.fromInt model.counterValue) ]
             , button (onClick Increment :: buttonStyle) [ text "+" ]
+            ]
+        , div []
+            [ input
+                [ type_ "text"
+                , value (toString model.delta)
+                , onInput onInputChanged
+                ]
+                []
             ]
         , div checkboxContainerStyle
             [ input
@@ -122,3 +138,8 @@ view model =
             ]
         , button (onClick Reset :: resetButtonStyle) [ text "RESET" ]
         ]
+
+
+onInputChanged : String -> Msg
+onInputChanged newValue =
+    ChangeDelta (toInt newValue)
