@@ -2,7 +2,7 @@ module Main exposing (Msg(..), main, update, view)
 
 import Browser
 import Html exposing (Html, button, div, input, text)
-import Html.Attributes exposing (checked, style, type_, value)
+import Html.Attributes exposing (checked, style, type_)
 import Html.Events exposing (onCheck, onClick)
 
 
@@ -42,7 +42,7 @@ update msg model =
 
         Decrement ->
             if not model.allowNegatives && model.counter == initialModel.counter then
-                initialModel
+                { model | counter = initialModel.counter }
 
             else
                 { model | counter = model.counter - 1 }
@@ -51,7 +51,11 @@ update msg model =
             { model | counter = initialModel.counter }
 
         ChangeAllowNegatives newValue ->
-            { model | allowNegatives = newValue }
+            if newValue then
+                { model | allowNegatives = newValue }
+
+            else
+                { model | allowNegatives = newValue, counter = initialModel.counter }
 
 
 containerStyles : List (Html.Attribute msg)
