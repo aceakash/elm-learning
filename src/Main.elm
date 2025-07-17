@@ -109,6 +109,9 @@ view model =
             , div counterStyles [ text (String.fromInt model.counter) ]
             , button (onClick Increment :: buttonStyles) [ text "+" ]
             ]
-        , input [ type_ "checkbox", checked model.allowNegatives, onCheck ChangeAllowNegatives ] []
+        , Html.label [ style "margin-top" "24px", style "font-size" "1.1rem", style "display" "flex", style "align-items" "center", style "gap" "8px" ]
+            [ input [ type_ "checkbox", checked model.allowNegatives, onCheck ChangeAllowNegatives ] []
+            , text " Allow negatives?"
+            ]
         , button (onClick Reset :: resetButtonStyles) [ text "RESET" ]
         ]
