@@ -41,8 +41,18 @@ update msg model =
             { model | counter = model.counter + 1 }
 
         Decrement ->
-            if not model.allowNegatives && model.counter == initialModel.counter then
-                { model | counter = initialModel.counter }
+            let
+                allowPositivesOnly =
+                    not model.allowNegatives
+
+                alreadyAtZero =
+                    model.counter == 0
+
+                keepAtZero =
+                    allowPositivesOnly && alreadyAtZero
+            in
+            if keepAtZero then
+                { model | counter = 0 }
 
             else
                 { model | counter = model.counter - 1 }
@@ -51,11 +61,15 @@ update msg model =
             { model | counter = initialModel.counter }
 
         ChangeAllowNegatives newValue ->
-            if newValue then
-                { model | allowNegatives = newValue }
+            let
+                newCounter =
+                    if newValue == False && (model.counter < 0) then
+                        0
 
-            else
-                { model | allowNegatives = newValue, counter = initialModel.counter }
+                    else
+                        model.counter
+            in
+            { model | allowNegatives = newValue, counter = newCounter }
 
 
 containerStyles : List (Html.Attribute msg)
