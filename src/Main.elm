@@ -10,12 +10,13 @@ type alias Model =
     { counter : Int
     , allowNegatives : Bool
     , counterInput : String
+    , stepSize : String
     }
 
 
 initialModel : Model
 initialModel =
-    { counter = 0, allowNegatives = True, counterInput = "0" }
+    { counter = 0, allowNegatives = True, counterInput = "0", stepSize = "1" }
 
 
 main : Program () Model Msg
@@ -34,6 +35,7 @@ type Msg
     | ChangeAllowNegatives Bool
     | SetCounterInput String
     | CommitCounterInput
+    | SetStepSize String
 
 
 update : Msg -> Model -> Model
@@ -41,13 +43,37 @@ update msg model =
     case msg of
         Increment ->
             let
+                step =
+                    case String.toInt model.stepSize of
+                        Just n ->
+                            if n > 0 then
+                                n
+
+                            else
+                                1
+
+                        Nothing ->
+                            1
+
                 newVal =
-                    model.counter + 1
+                    model.counter + step
             in
             { model | counter = newVal }
 
         Decrement ->
             let
+                step =
+                    case String.toInt model.stepSize of
+                        Just n ->
+                            if n > 0 then
+                                n
+
+                            else
+                                1
+
+                        Nothing ->
+                            1
+
                 allowPositivesOnly =
                     not model.allowNegatives
 
@@ -63,7 +89,7 @@ update msg model =
             else
                 let
                     newVal =
-                        model.counter - 1
+                        model.counter - step
                 in
                 { model | counter = newVal }
 
@@ -83,6 +109,9 @@ update msg model =
 
         SetCounterInput str ->
             { model | counterInput = str }
+
+        SetStepSize str ->
+            { model | stepSize = str }
 
         CommitCounterInput ->
             case String.toInt model.counterInput of
@@ -147,6 +176,10 @@ view model =
             [ button (onClick Decrement :: buttonStyles) [ text "-" ]
             , div counterStyles [ text (String.fromInt model.counter) ]
             , button (onClick Increment :: buttonStyles) [ text "+" ]
+            ]
+        , div [ style "margin-top" "16px", style "display" "flex", style "align-items" "center", style "gap" "8px" ]
+            [ text "Step size:"
+            , input [ type_ "number", Html.Attributes.value model.stepSize, Html.Events.onInput SetStepSize, style "width" "60px", style "font-size" "1rem" ] []
             ]
         , div [ style "margin-top" "24px", style "display" "flex", style "align-items" "center", style "gap" "8px" ]
             [ input [ type_ "number", Html.Attributes.value model.counterInput, Html.Events.onInput SetCounterInput, style "width" "80px", style "font-size" "1rem" ] []
