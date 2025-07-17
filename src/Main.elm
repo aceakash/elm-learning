@@ -9,12 +9,13 @@ import Html.Events exposing (onCheck, onClick)
 type alias Model =
     { counter : Int
     , allowNegatives : Bool
+    , counterInput : String
     }
 
 
 initialModel : Model
 initialModel =
-    { counter = 0, allowNegatives = True }
+    { counter = 0, allowNegatives = True, counterInput = "0" }
 
 
 main : Program () Model Msg
@@ -31,14 +32,19 @@ type Msg
     | Decrement
     | Reset
     | ChangeAllowNegatives Bool
+    | SetCounterInput String
+    | CommitCounterInput
 
 
 update : Msg -> Model -> Model
 update msg model =
     case msg of
         Increment ->
-            -- { counter = model.counter + 1, allowNegatives = model.allowNegatives }
-            { model | counter = model.counter + 1 }
+            let
+                newVal =
+                    model.counter + 1
+            in
+            { model | counter = newVal }
 
         Decrement ->
             let
@@ -55,10 +61,14 @@ update msg model =
                 { model | counter = 0 }
 
             else
-                { model | counter = model.counter - 1 }
+                let
+                    newVal =
+                        model.counter - 1
+                in
+                { model | counter = newVal }
 
         Reset ->
-            { model | counter = initialModel.counter }
+            { model | counter = initialModel.counter, counterInput = String.fromInt initialModel.counter }
 
         ChangeAllowNegatives newValue ->
             let
@@ -69,7 +79,22 @@ update msg model =
                     else
                         model.counter
             in
-            { model | allowNegatives = newValue, counter = newCounter }
+            { model | allowNegatives = newValue, counter = newCounter, counterInput = String.fromInt newCounter }
+
+        SetCounterInput str ->
+            { model | counterInput = str }
+
+        CommitCounterInput ->
+            case String.toInt model.counterInput of
+                Just n ->
+                    if not model.allowNegatives && n < 0 then
+                        { model | counter = 0, counterInput = "0" }
+
+                    else
+                        { model | counter = n, counterInput = String.fromInt n }
+
+                Nothing ->
+                    model
 
 
 containerStyles : List (Html.Attribute msg)
@@ -122,6 +147,10 @@ view model =
             [ button (onClick Decrement :: buttonStyles) [ text "-" ]
             , div counterStyles [ text (String.fromInt model.counter) ]
             , button (onClick Increment :: buttonStyles) [ text "+" ]
+            ]
+        , div [ style "margin-top" "24px", style "display" "flex", style "align-items" "center", style "gap" "8px" ]
+            [ input [ type_ "number", Html.Attributes.value model.counterInput, Html.Events.onInput SetCounterInput, style "width" "80px", style "font-size" "1rem" ] []
+            , button [ onClick CommitCounterInput, style "font-size" "1rem" ] [ text "Set Counter" ]
             ]
         , Html.label [ style "margin-top" "24px", style "font-size" "1.1rem", style "display" "flex", style "align-items" "center", style "gap" "8px" ]
             [ input [ type_ "checkbox", checked model.allowNegatives, onCheck ChangeAllowNegatives ] []
